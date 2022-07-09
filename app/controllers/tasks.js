@@ -9,14 +9,42 @@ const getPagination = createPagination(Task);
 const getAllTasks = asyncWrapper(
     async (req, res) => {
         const {
-            filters = {},
+            completed,
+            name,
             page,
             pageSize,
+            sort,
         } = req.query;
 
-        const { skip, ...pagination } = await getPagination(page, pageSize, filters);
+        const filters = {};
 
-        const tasks = await Task.find(filters, null, { skip, limit: pagination.pageSize });
+        if (completed) {
+            filters.completed = completed === 'true';
+        }
+
+        if (name) {
+            filters.name = {
+                $regex: name,
+                $options: 'i',
+            };
+        }
+
+        const sortParams = sort ? sort.split(',').join(' ').trim() : 'createdAt';
+
+        const { skip, ...pagination } = await getPagination({
+            page: Math.abs(parseInt(page)) || 1,
+            pageSize: Math.abs(parseInt(pageSize)) || 10,
+            ...filters,
+        });
+
+        const tasks = await Task.find(
+            filters,
+            null,
+            {
+                skip,
+                limit: pagination.pageSize,
+            },
+        ).sort(sortParams);
 
         res.status(STATUS_CODES.SUCCESS).send({
             tasks,
@@ -27,7 +55,10 @@ const getAllTasks = asyncWrapper(
 
 const createTask = asyncWrapper( 
     async (req, res) => {
-        const task = await Task.create(req.body);
+        const task = await Task.create({
+            ...req.body,
+            createdAt: Date.now(),
+        });
         
         res.status(STATUS_CODES.CREATED).json({ task });
     }

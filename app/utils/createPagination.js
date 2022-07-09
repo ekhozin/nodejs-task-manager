@@ -1,25 +1,25 @@
-const createPagination = (model) => async (page = 1, pageSize = 10, filters = {}) => {
-    let pageNum = Math.abs(parseInt(page));
-    pageNum = pageNum || 1;
-
-    let pageSizeNum = Math.abs(parseInt(pageSize));
-    pageSizeNum = pageSizeNum || 1;
-
+const createPagination = (model) => async (
+    {
+        page = 1,
+        pageSize = 10,
+        ...filters
+    } = {},
+) => {
     const totalRecords = await model.where(filters).countDocuments();
 
-    const totalPages = Math.ceil(totalRecords / pageSizeNum);
+    const totalPages = Math.ceil(totalRecords / pageSize);
 
-    const skip = (pageNum - 1) * pageSizeNum;
+    const skip = (page - 1) * pageSize;
 
-    const nextPage = pageNum < totalPages ? pageNum + 1 : null;
+    const nextPage = page < totalPages ? page + 1 : null;
 
-    const prevPage = pageNum <= 1 ? null : pageNum - 1;
+    const prevPage = page <= 1 ? null : page - 1;
 
     return {
-        page: pageNum,
+        page,
         nextPage,
         prevPage, 
-        pageSize: pageSizeNum,
+        pageSize,
         totalRecords,
         totalPages,
         skip,
