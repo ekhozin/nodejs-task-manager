@@ -3,6 +3,9 @@ const createPagination = require('../utils/createPagination');
 const asyncWrapper = require('../utils/asyncWrapper');
 const CustomError = require('../errors/CustomError');
 const STATUS_CODES = require('../constants/statusCodes');
+const createNumericFiltersMapper = require('../utils/createNumericFiltersMapper');
+
+const mapNumericFilters = createNumericFiltersMapper(['likes']);
 
 const getPagination = createPagination(Task);
 
@@ -12,11 +15,11 @@ const getAllTasks = asyncWrapper(
             completed,
             name,
             page,
-            pageSize,
+            limit,
             sort,
         } = req.query;
 
-        const filters = {};
+        const filters = mapNumericFilters(req.query);
 
         if (completed) {
             filters.completed = completed === 'true';
@@ -32,8 +35,8 @@ const getAllTasks = asyncWrapper(
         const sortParams = sort ? sort.split(',').join(' ').trim() : 'createdAt';
 
         const { skip, ...pagination } = await getPagination({
-            page: Math.abs(parseInt(page)) || 1,
-            pageSize: Math.abs(parseInt(pageSize)) || 10,
+            page: Number(page) || 1,
+            limit: Number(limit) || 10,
             ...filters,
         });
 
@@ -42,9 +45,10 @@ const getAllTasks = asyncWrapper(
             null,
             {
                 skip,
-                limit: pagination.pageSize,
+                limit: pagination.limit,
+                sort: sortParams,
             },
-        ).sort(sortParams);
+        );
 
         res.status(STATUS_CODES.SUCCESS).send({
             tasks,
