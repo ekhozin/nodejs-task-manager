@@ -2,6 +2,13 @@ const jwt = require('jsonwebtoken');
 const asyncWrapper = require('../utils/asyncWrapper');
 const STATUS_CODES = require('../constants/statusCodes');
 const CustomError = require('../errors/CustomError');
+const User = require('../models/User');
+
+const registerUser = asyncWrapper(
+  async (req, res, next) => {
+    res.send('register');
+  },
+);
 
 const loginUser = asyncWrapper( 
   async (req, res, next) => {
@@ -31,4 +38,4 @@ const loginUser = asyncWrapper(
   }
 );
 
-module.exports = { loginUser };
+module.exports = { loginUser, registerUser };

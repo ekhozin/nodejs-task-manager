@@ -5,6 +5,7 @@ const auth = require('./app/routes/auth');
 const connectDB = require('./app/db/connect');
 const notFoundController = require('./app/controllers/notFoundController');
 const errorMiddleware = require('./app/middleware/errorMiddleware');
+const authenticationMiddleware = require('./app/middleware/authenticationMiddleware');
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.use(express.json());
  * Routes
  */
 app.use('/api/v1', auth);
-app.use('/api/v1/tasks', tasks);
+app.use('/api/v1/tasks', authenticationMiddleware, tasks);
 
 // handle unknown route
 app.use('*', notFoundController);
