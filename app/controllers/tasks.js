@@ -59,10 +59,7 @@ const getAllTasks = asyncWrapper(
 
 const createTask = asyncWrapper( 
     async (req, res) => {
-        const task = await Task.create({
-            ...req.body,
-            createdAt: Date.now(),
-        });
+        const task = await Task.create(req.body);
         
         res.status(STATUS_CODES.CREATED).json({ task });
     }

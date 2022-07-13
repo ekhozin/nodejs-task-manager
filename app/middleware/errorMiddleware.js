@@ -5,7 +5,6 @@ const handleCastErrorDB = (error) => {
     return new CustomError(
         `Invalid ${error.path}: ${error.value}`,
         STATUS_CODES.BAD_REQUEST,
-        error.status,
     );
 }; 
 
@@ -15,7 +14,6 @@ const handleDuplicateFieldsErrorDB = (error) => {
     return new CustomError(
         `Duplicate field value: ${value}. Please use another value.`,
         STATUS_CODES.BAD_REQUEST,
-        error.status,
     );
 };
 
@@ -30,7 +28,6 @@ const handleValidationErrorDB = (error) => {
     return new CustomError(
         message,
         STATUS_CODES.BAD_REQUEST,
-        error.status,
     );
 };
 
@@ -43,10 +40,10 @@ const handleValidationErrorDB = (error) => {
  * @returns 
  */
 const errorMiddleware = (err, req, res, next) => {
+    console.log(err)
     if (err instanceof CustomError) {
         return res.status(err.statusCode).json({
             error: {
-                status: err.status || 'error',
                 message: err.message,
             },
         });
@@ -60,7 +57,6 @@ const errorMiddleware = (err, req, res, next) => {
 
         return res.status(error.statusCode).json({
             error: {
-                status: error.status,
                 message: error.message,
             },
         });
@@ -71,7 +67,6 @@ const errorMiddleware = (err, req, res, next) => {
 
         return res.status(error.statusCode).json({
             error: {
-                status: error.status,
                 message: error.message,
             },
         });
@@ -82,14 +77,12 @@ const errorMiddleware = (err, req, res, next) => {
 
         return res.status(error.statusCode).json({
             error: {
-                status: error.status,
                 message: error.message,
             },
         });
     }
 
     return res.status(STATUS_CODES.SERVER_ERROR).json({
-        status: 'error',
         message: 'Internal server error',
     });
 };

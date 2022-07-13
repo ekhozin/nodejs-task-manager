@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const tasks = require('./app/routes/tasks');
+const auth = require('./app/routes/auth');
 const connectDB = require('./app/db/connect');
 const notFoundController = require('./app/controllers/notFoundController');
 const errorMiddleware = require('./app/middleware/errorMiddleware');
@@ -15,6 +16,7 @@ app.use(express.json());
 /**
  * Routes
  */
+app.use('/api/v1', auth);
 app.use('/api/v1/tasks', tasks);
 
 // handle unknown route
