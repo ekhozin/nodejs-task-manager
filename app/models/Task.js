@@ -12,8 +12,13 @@ const TaskSchema = new mongoose.Schema({
     default: false,
   },
   likes: {
-     type: Number,
+    type: Number,
     default: 0,
+  },
+  createdBy: {
+    type: mongoose.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'Please provide user'],
   },
 },
 {

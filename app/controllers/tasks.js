@@ -32,6 +32,8 @@ const getAllTasks = asyncWrapper(
             };
         }
 
+        filters.createdBy = req.user.id;
+
         const sortParams = sort ? sort.split(',').join(' ').trim() : 'createdAt';
 
         const { skip, ...pagination } = await getPagination({
@@ -59,6 +61,8 @@ const getAllTasks = asyncWrapper(
 
 const createTask = asyncWrapper( 
     async (req, res) => {
+        req.body.createdBy = req.user.id;
+
         const task = await Task.create(req.body);
         
         res.status(STATUS_CODES.CREATED).json({ task });
@@ -67,13 +71,15 @@ const createTask = asyncWrapper(
 
 const getTask = asyncWrapper(
     async (req, res, next) => {
-        const { id: taskId } = req.params;
-        const task = await Task.findById(taskId);
+        const task = await Task.findOne({
+            _id: req.params.id,
+            createdBy: req.user.id,
+        });
 
         if (!task) {
             return next(
                 new CustomError(
-                    `Task ${taskId} does not exist`,
+                    `Task ${req.params.id} does not exist`,
                     STATUS_CODES.NOT_FOUND,
                 ),
             );
@@ -84,10 +90,12 @@ const getTask = asyncWrapper(
 );
 
 const updateTask = asyncWrapper(
-    async (req, res) => {
-        const { id: taskId } = req.params;
-        const task = await Task.findByIdAndUpdate(
-            taskId,
+    async (req, res, next) => {
+        const task = await Task.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                createdBy: req.user.id,
+            },
             req.body,
             {
                 new: true,
@@ -98,7 +106,7 @@ const updateTask = asyncWrapper(
         if (!task) {
             return next(
                 new CustomError(
-                    `Task ${taskId} does not exist`,
+                    `Task ${req.params.id} does not exist`,
                     STATUS_CODES.NOT_FOUND,
                 ),
             );
@@ -110,13 +118,15 @@ const updateTask = asyncWrapper(
 
 const deleteTask = asyncWrapper(
     async (req, res, next) => {
-        const { id: taskId } = req.params;
-        const task = await Task.findByIdAndDelete(taskId);
+        const task = await Task.findOneAndDelete({
+            _id: req.params.id,
+            createdBy: req.user.id,
+        });
 
         if (!task) {
             return next(
                 new CustomError(
-                    `Task ${taskId} does not exist`,
+                    `Task ${req.params.id} does not exist`,
                     STATUS_CODES.NOT_FOUND,
                 ),
             );

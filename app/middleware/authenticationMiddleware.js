@@ -2,10 +2,10 @@ const jwt = require('jsonwebtoken');
 const STATUS_CODES = require('../constants/statusCodes');
 const CustomError = require('../errors/CustomError');
 
-const authenticationMiddleware = (req, res, next) => {
+const authenticationMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
     return next(
       new CustomError(
         'Bad token',
@@ -18,6 +18,9 @@ const authenticationMiddleware = (req, res, next) => {
 
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = { id: decodedToken.userId };
+
     next();
   } catch (err) {
     next(
