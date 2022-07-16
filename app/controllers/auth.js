@@ -1,40 +1,58 @@
-const jwt = require('jsonwebtoken');
 const asyncWrapper = require('../utils/asyncWrapper');
 const STATUS_CODES = require('../constants/statusCodes');
 const CustomError = require('../errors/CustomError');
 const User = require('../models/User');
 
 const registerUser = asyncWrapper(
-  async (req, res, next) => {
-    res.send('register');
+  async (req, res) => {
+    const user = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+    });
+
+    res.status(STATUS_CODES.CREATED).json({ token: user.createToken() });
   },
 );
 
 const loginUser = asyncWrapper( 
   async (req, res, next) => {
-      const { password, username } = req.body;
+      const { password, email } = req.body;
 
-      // call db
-      // const task = await Task.create(req.body);
-      if (!password || !username) {
+      if (!password || !email) {
         return next(
           new CustomError(
-            'Password or username is not provided',
+            'Password or email is not provided',
             STATUS_CODES.BAD_REQUEST,
           ),
         );
       }
 
-      // Temporary solution
-      const id = new Date().getDate();
+      const user = await User.findOne({ email });
 
-      const token = jwt.sign(
-        { username, id },
-        process.env.JWT_SECRET,
-        { expiresIn: '30d' },
-      );
+      if (!user) {
+        return next(
+          new CustomError(
+            'Invalid credentials',
+            STATUS_CODES.NOT_AUTHORIZED,
+          ),
+        );
+      }
 
-      res.status(STATUS_CODES.SUCCESS).json({ token });
+      const isPasswordCorrect = await user.validatePassword(password);
+
+      if (!isPasswordCorrect) {
+        return next(
+          new CustomError(
+            'Invalid credentials',
+            STATUS_CODES.NOT_AUTHORIZED,
+          ),
+        );
+      }
+
+      res.status(STATUS_CODES.SUCCESS).json({
+        token: user.createToken(),
+      });
   }
 );
 

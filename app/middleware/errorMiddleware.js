@@ -20,14 +20,19 @@ const handleDuplicateFieldsErrorDB = (error) => {
 const handleValidationErrorDB = (error) => {
     const errors = Object
         .entries(error.errors)
-        .map(
-            ([fieldName, errorData]) => `${fieldName}: ${errorData.message}`,
+        .reduce(
+            (acc, [fieldName, errorData]) => {
+                acc[fieldName] = errorData.message;
+
+                return acc;
+            },
+            {},
         );
-    const message = `Invalid input data. ${errors.join('. ')}`;
 
     return new CustomError(
-        message,
+        'Invalid input data',
         STATUS_CODES.BAD_REQUEST,
+        errors,
     );
 };
 
@@ -45,6 +50,7 @@ const errorMiddleware = (err, req, res, next) => {
         return res.status(err.statusCode).json({
             error: {
                 message: err.message,
+                data: err.data,
             },
         });
     }
@@ -68,6 +74,7 @@ const errorMiddleware = (err, req, res, next) => {
         return res.status(error.statusCode).json({
             error: {
                 message: error.message,
+                data: error.data,
             },
         });
     }
@@ -78,6 +85,7 @@ const errorMiddleware = (err, req, res, next) => {
         return res.status(error.statusCode).json({
             error: {
                 message: error.message,
+                data: error.data,
             },
         });
     }
